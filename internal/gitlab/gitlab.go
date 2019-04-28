@@ -747,3 +747,20 @@ func UserIDFromUsername(username string) (int, error) {
 	}
 	return us[0].ID, nil
 }
+
+// MRCreateNote adds a note to a merge request on GitLab
+func MRCreateNote(project string, mrNum int, opts *gitlab.CreateMergeRequestNoteOptions) (string, error) {
+        p, err := FindProject(project)
+        if err != nil {
+                return "", err
+        }
+
+        note, _, err := lab.Notes.CreateMergeRequestNote(p.ID, mrNum, opts)
+        if err != nil {
+                return "", err
+        }
+        // Unlike MR, Note has no WebURL property, so we have to create it
+        // ourselves from the project, noteable id and note id
+        return fmt.Sprintf("%s/merge_requests/%d#note_%d", p.WebURL, note.NoteableIID, note.ID), nil
+}
+
